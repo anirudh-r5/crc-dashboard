@@ -41,3 +41,6 @@ next-env.d.ts
 **/.terraform/*
 *.tfstate.*
 *.tfvars.json
+
+#IDE artifacts
+.idea
