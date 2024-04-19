@@ -150,6 +150,17 @@ resource "cloudflare_record" "acm" {
   proxied = false
 }
 
+resource "aws_cloudfront_response_headers_policy" "sec_headers" {
+  name    = "sec_headers"
+  comment = "Restrict iframes"
+  security_headers_config {
+    content_security_policy {
+      content_security_policy = "frame-ancestors 'none'"
+      override                = "true"
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "dist" {
   origin {
     domain_name = aws_s3_bucket_website_configuration.site.website_endpoint
@@ -175,19 +186,15 @@ resource "aws_cloudfront_distribution" "dist" {
   }
 
   default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = aws_s3_bucket.site.id
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
-    }
-    viewer_protocol_policy = "allow-all"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
+    allowed_methods            = ["GET", "HEAD"]
+    cached_methods             = ["GET", "HEAD"]
+    target_origin_id           = aws_s3_bucket.site.id
+    origin_request_policy_id   = "658327ea-f89d-4fab-a63d-7e88639e58f6"
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.sec_headers.id
+    viewer_protocol_policy     = "allow-all"
+    min_ttl                    = 0
+    default_ttl                = 3600
+    max_ttl                    = 86400
   }
 
   viewer_certificate {
